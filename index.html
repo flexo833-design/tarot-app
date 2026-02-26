@@ -1,509 +1,92 @@
-<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#060814" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Таро — 2/3/5 (v8)</title>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" href="./icons/icon-192.png">
-  <style>
-    :root{
-      --bg:#f7f7fb; --card:#fff; --ink:#0e0f13; --muted:#5b6170; --stroke:#e6e6ef;
-      --brand:#6b5cff; --green:#34d399; --dark:#060814; --dark2:#0b1020;
-      --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-    }
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--bg);color:var(--ink)}
-    .wrap{max-width:980px;margin:0 auto;padding:18px}
-    .card{background:var(--card);border:1px solid var(--stroke);border-radius:18px;box-shadow:0 6px 18px rgba(0,0,0,.06);padding:16px}
-    h1{font-size:20px;margin:0 0 6px}
-    p{margin:8px 0 0;line-height:1.45;color:var(--muted)}
-    label{display:block;font-size:12px;color:#424857;margin:0 0 6px}
-    select,input,button,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #d7d7e6;background:#fff;font-size:14px;box-sizing:border-box}
-    button{cursor:pointer;border:0;background:#111;color:#fff}
-    button:hover{opacity:.92}
-    .btnAlt{background:var(--brand)}
-    .btnGreen{background:var(--green);color:#052013}
-    .btnGhost{background:#fff;color:#111;border:1px solid #cfd2ff}
-    .controls{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
-    @media (max-width:900px){.grid{grid-template-columns:1fr}}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .btnRow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-top:12px}
-    @media (max-width:900px){.btnRow{grid-template-columns:1fr 1fr}}
-    .previewRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
-    @media (max-width:900px){.previewRow{grid-template-columns:1fr}}
-    .tarotCard{
-      border-radius:16px; padding:12px; background:linear-gradient(180deg,#0b1020 0%, #070a16 100%);
-      color:#eef0ff; border:1px solid rgba(255,255,255,.10);
-    }
-    .tarotTitle{font-weight:800}
-    .tarotSub{font-size:12px;opacity:.85;margin-top:6px}
-    .tarotKeys{margin-top:10px;font-size:13px;line-height:1.35;opacity:.95}
-    .imgBox{margin-top:10px;display:flex;gap:10px;align-items:flex-start}
-    .imgBox img{width:110px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06)}
-    .out{margin-top:12px;padding:14px;border-radius:16px;background:var(--dark2);color:#f4f6ff}
-    .out h2{font-size:15px;margin:0 0 8px;color:#cdd6ff}
-    .out pre{white-space:pre-wrap;margin:0;font-family:var(--mono);font-size:13px;line-height:1.45}
-    .split{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin-top:12px}
-    @media (max-width:900px){.split{grid-template-columns:1fr}}
-    .panel{border:1px solid var(--stroke);border-radius:16px;padding:12px;background:#fbfbff}
-    .panel h3{margin:0 0 10px;font-size:14px}
-    .list{max-height:320px;overflow:auto;border-radius:12px;border:1px solid var(--stroke);background:#fff}
-    .item{padding:10px;border-bottom:1px solid var(--stroke);cursor:pointer}
-    .item:last-child{border-bottom:0}
-    .item b{display:block;font-size:13px}
-    .item small{display:block;color:#666;margin-top:4px}
-    .offline{margin-top:10px;font-size:12px;color:#1f7a3a;display:none}
-    .offline.bad{color:#b00020}
-    body.dark{--bg:#060814; --card:#0b1020; --ink:#eef0ff; --muted:#b8c0e2; --stroke:rgba(255,255,255,.10);}
-    body.dark .panel{background:#0b1020}
-    body.dark select, body.dark input, body.dark textarea{background:#070a16;color:#eef0ff;border:1px solid rgba(255,255,255,.14)}
-    body.dark label{color:#cbd2f1}
-    body.dark .btnGhost{background:#0b1020;color:#eef0ff;border:1px solid rgba(255,255,255,.14)}
-    body.dark .list{background:#070a16;border:1px solid rgba(255,255,255,.14)}
-    body.dark .item{border-bottom:1px solid rgba(255,255,255,.10)}
-    body.dark .item small{color:#b8c0e2}
-    @media print{
-      body{background:#fff;color:#000}
-      .wrap{max-width:unset;padding:0}
-      .card{border:0;box-shadow:none;padding:0}
-      .controls,.grid,.btnRow,.split,#net,#previewWrap,#btnDark,#btnReset{display:none !important}
-      #out{display:block !important;background:#fff;color:#000;border:0}
-      #out h2{color:#000}
-      #out pre{font-size:12pt;line-height:1.35;font-family:system-ui}
-    }
-  </style>
-</head>
-<body>
-<div class="wrap">
-  <div class="card">
-    <h1>Таро — расклады 2 / 3 / 5 (v8)</h1>
-    <p>Полная колода Rider–Waite (78 карт, картинки), офлайн-кэш, тёмный режим, трактовка/да-нет/отчёт, PDF и история.</p>
-    <div id="net" class="offline">✓ Офлайн-режим готов</div>
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#060814"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Таро — 2/3/5 (v9)</title>
+<link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icons/icon-192.png">
+<style>
+:root{--bg:#f7f7fb;--card:#fff;--ink:#0e0f13;--muted:#5b6170;--stroke:#e6e6ef;--brand:#6b5cff;--green:#34d399;--dark2:#0b1020;--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--bg);color:var(--ink)}
+.wrap{max-width:980px;margin:0 auto;padding:18px}.card{background:var(--card);border:1px solid var(--stroke);border-radius:18px;box-shadow:0 6px 18px rgba(0,0,0,.06);padding:16px}
+h1{font-size:20px;margin:0 0 6px}p{margin:8px 0 0;line-height:1.45;color:var(--muted)}label{display:block;font-size:12px;color:#424857;margin:0 0 6px}
+select,input,button,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #d7d7e6;background:#fff;font-size:14px;box-sizing:border-box}
+button{cursor:pointer;border:0;background:#111;color:#fff}button:hover{opacity:.92}.btnAlt{background:var(--brand)}.btnGreen{background:var(--green);color:#052013}.btnGhost{background:#fff;color:#111;border:1px solid #cfd2ff}
+.controls{display:flex;flex-direction:column;gap:10px;margin-top:12px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btnRow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-top:12px}@media (max-width:900px){.btnRow{grid-template-columns:1fr 1fr}}
+.out{margin-top:12px;padding:14px;border-radius:16px;background:var(--dark2);color:#f4f6ff}.out h2{font-size:15px;margin:0 0 8px;color:#cdd6ff}.out pre{white-space:pre-wrap;margin:0;font-family:var(--mono);font-size:13px;line-height:1.45}
+.board{margin-top:14px;padding:14px;border-radius:18px;border:1px solid var(--stroke);background:linear-gradient(180deg,#101428,#060814);}
+.boardGrid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.boardGrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.boardGrid5{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;grid-template-areas:"c1 c2 c3" "c4 c2 c5";}
+.slot{color:#eef0ff}.flip{perspective:900px}.flipInner{position:relative;width:100%;aspect-ratio:11/19;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.2,.8,.2,1);}
+.flip.flipped .flipInner{transform:rotateY(180deg);}.face{position:absolute;inset:0;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.12);backface-visibility:hidden;background:rgba(255,255,255,.06);}
+.front img{width:100%;height:100%;object-fit:cover}.back{transform:rotateY(180deg);background:linear-gradient(135deg,#2b2f6b,#0b1020);display:flex;align-items:center;justify-content:center;padding:10px;text-align:center}
+.badge{margin-top:8px;font-size:12px;opacity:.9}.panel{border:1px solid var(--stroke);border-radius:16px;padding:12px;background:#fbfbff;margin-top:12px}
+.offline{margin-top:10px;font-size:12px;color:#1f7a3a;display:none}
+body.dark{--bg:#060814;--card:#0b1020;--ink:#eef0ff;--muted:#b8c0e2;--stroke:rgba(255,255,255,.10);}
+body.dark .panel{background:#0b1020}body.dark select,body.dark input,body.dark textarea{background:#070a16;color:#eef0ff;border:1px solid rgba(255,255,255,.14)}
+body.dark label{color:#cbd2f1}body.dark .btnGhost{background:#0b1020;color:#eef0ff;border:1px solid rgba(255,255,255,.14)}
+@media print{.controls,.grid,.btnRow,#net,#board,#btnDark,#btnReset,#btnCacheAll{display:none!important}#out{display:block!important;background:#fff;color:#000;border:0}#out h2{color:#000}#out pre{font-size:12pt;line-height:1.35;font-family:system-ui}}
+</style></head><body><div class="wrap"><div class="card">
+<h1>Таро — расклады 2 / 3 / 5 (v9)</h1>
+<p>Fix: младшие арканы теперь грузятся. Добавлено: flip и расклад “на столе”.</p>
+<div id="net" class="offline">✓ Офлайн-режим готов</div>
 
-    <div class="controls">
-      <button id="btnDark" class="btnGhost">Тёмный режим: ВКЛ/ВЫКЛ</button>
-      <button id="btnReset" class="btnGhost">Сбросить поля</button>
+<div class="controls">
+<button id="btnDark" class="btnGhost">Тёмный режим: ВКЛ/ВЫКЛ</button>
+<button id="btnCacheAll" class="btnGhost">Закешировать все 78 карт (1 раз онлайн)</button>
+<button id="btnReset" class="btnGhost">Сбросить поля</button>
 
-      <div><label for="mode">Режим</label>
-        <select id="mode">
-          <option value="interpret" selected>Трактовка</option>
-          <option value="yesno">Да / Нет</option>
-          <option value="client">Клиентский отчёт</option>
-        </select>
-      </div>
-
-      <div><label for="spread">Расклад</label>
-        <select id="spread">
-          <option value="2">2 карты</option>
-          <option value="3" selected>3 карты</option>
-          <option value="5">5 карт</option>
-        </select>
-      </div>
-
-      <div><label for="themeAll">Тема</label>
-        <select id="themeAll">
-          <option value="general" selected>Общее</option>
-          <option value="love">Любовь</option>
-          <option value="money">Деньги/работа</option>
-        </select>
-      </div>
-
-      <div><label for="layout">Смысл позиций</label>
-        <select id="layout">
-          <option value="pni" selected>Причина → Суть → Итог</option>
-          <option value="pastpresentfuture">Прошлое → Настоящее → Будущее</option>
-          <option value="situationadviceoutcome">Ситуация → Совет → Итог</option>
-        </select>
-      </div>
-
-      <div><label for="question">Вопрос (для “Да/Нет” и отчёта)</label>
-        <input id="question" placeholder="Например: Стоит ли менять работу в ближайшие 3 месяца?">
-      </div>
-
-      <div><label for="style">Стиль ответа</label>
-        <select id="style">
-          <option value="soft" selected>Мягко</option>
-          <option value="direct">Прямо</option>
-          <option value="short">Коротко</option>
-        </select>
-      </div>
-
-      <div class="row">
-        <div><label for="title">Метка</label><input id="title" placeholder="Работа / отношения..."></div>
-        <div><label for="client">Имя</label><input id="client" placeholder="Необязательно"></div>
-      </div>
-    </div>
-
-    <div id="cardsContainer" class="grid"></div>
-    <div id="previewWrap" class="previewRow"></div>
-
-    <div class="btnRow">
-      <button id="btnGo">Сформировать</button>
-      <button id="btnCopy" class="btnAlt">Скопировать</button>
-      <button id="btnPrint" class="btnGhost">Печать / PDF</button>
-      <button id="btnSave" class="btnGreen">Сохранить</button>
-    </div>
-
-    <div class="out" id="out" style="display:none">
-      <h2>Результат</h2>
-      <pre id="txt"></pre>
-    </div>
-
-    <div class="split">
-      <div class="panel">
-        <h3>История</h3>
-        <div class="list" id="history"></div>
-        <div class="row" style="margin-top:10px">
-          <button id="btnExport" class="btnGhost">Экспорт (JSON)</button>
-          <button id="btnClear" style="background:#b00020">Очистить</button>
-        </div>
-        <div style="margin-top:10px">
-          <label for="import">Импорт (вставьте JSON)</label>
-          <textarea id="import" rows="4"></textarea>
-          <button id="btnImport" class="btnAlt" style="margin-top:8px">Импортировать</button>
-        </div>
-      </div>
-      <div class="panel">
-        <h3>Офлайн и картинки</h3>
-        <p style="margin:0;color:var(--muted);line-height:1.45">
-          Картинки подгружаются с Wikimedia. Откройте расклад онлайн 1 раз — изображения закешируются и дальше будут доступны офлайн.
-          Чтобы быстро закешировать всю колоду: пролистайте выпадающий список карт и поочерёдно выберите все карты (или скажи — добавлю кнопку “Закешировать все 78”).
-        </p>
-      </div>
-    </div>
-  </div>
+<div><label>Режим</label><select id="mode"><option value="interpret" selected>Трактовка</option><option value="yesno">Да / Нет</option><option value="client">Клиентский отчёт</option></select></div>
+<div><label>Расклад</label><select id="spread"><option value="2">2 карты</option><option value="3" selected>3 карты</option><option value="5">5 карт</option></select></div>
+<div><label>Тема</label><select id="themeAll"><option value="general" selected>Общее</option><option value="love">Любовь</option><option value="money">Деньги/работа</option></select></div>
+<div><label>Смысл позиций</label><select id="layout"><option value="pni" selected>Причина → Суть → Итог</option><option value="pastpresentfuture">Прошлое → Настоящее → Будущее</option><option value="situationadviceoutcome">Ситуация → Совет → Итог</option></select></div>
+<div><label>Вопрос</label><input id="question" placeholder="Стоит ли менять работу в ближайшие 3 месяца?"></div>
+<div><label>Стиль ответа</label><select id="style"><option value="soft" selected>Мягко</option><option value="direct">Прямо</option><option value="short">Коротко</option></select></div>
+<div class="row"><div><label>Метка</label><input id="title" placeholder="Работа / отношения..."></div><div><label>Имя</label><input id="client" placeholder="Необязательно"></div></div>
 </div>
 
+<div id="cardsContainer" class="grid"></div>
+<div id="board" class="board"></div>
+
+<div class="btnRow"><button id="btnGo">Сформировать</button><button id="btnCopy" class="btnAlt">Скопировать</button><button id="btnPrint" class="btnGhost">Печать / PDF</button><button id="btnSave" class="btnGreen">Сохранить</button></div>
+<div class="out" id="out" style="display:none"><h2>Результат</h2><pre id="txt"></pre></div>
+<div class="panel"><b>Подсказка:</b> нажми на карту на “столе” — она перевернётся. Для офлайна: “Закешировать все 78” один раз, пока есть интернет.</div>
+
 <script>
-  const IMG = {"0 Шут": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2000%20Fool.jpg", "I Маг": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2001%20Magician.jpg", "II Жрица": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2002%20High%20Priestess.jpg", "III Императрица": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2003%20Empress.jpg", "IV Император": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2004%20Emperor.jpg", "V Иерофант": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2005%20Hierophant.jpg", "VI Влюблённые": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2006%20Lovers.jpg", "VII Колесница": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2007%20Chariot.jpg", "VIII Сила": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2008%20Strength.jpg", "IX Отшельник": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2009%20Hermit.jpg", "X Колесо Фортуны": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2010%20Wheel%20of%20Fortune.jpg", "XI Справедливость": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2011%20Justice.jpg", "XII Повешенный": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2012%20Hanged%20Man.jpg", "XIII Смерть": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2013%20Death.jpg", "XIV Умеренность": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2014%20Temperance.jpg", "XV Дьявол": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2015%20Devil.jpg", "XVI Башня": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2016%20Tower.jpg", "XVII Звезда": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2017%20Star.jpg", "XVIII Луна": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2018%20Moon.jpg", "XIX Солнце": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2019%20Sun.jpg", "XX Суд": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2020%20Judgement.jpg", "XXI Мир": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2021%20World.jpg", "Туз Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Ace%20of%20Wands.jpg", "2 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%202%20of%20Wands.jpg", "3 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%203%20of%20Wands.jpg", "4 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%204%20of%20Wands.jpg", "5 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%205%20of%20Wands.jpg", "6 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%206%20of%20Wands.jpg", "7 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%207%20of%20Wands.jpg", "8 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%208%20of%20Wands.jpg", "9 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%209%20of%20Wands.jpg", "10 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2010%20of%20Wands.jpg", "Паж Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Page%20of%20Wands.jpg", "Рыцарь Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Knight%20of%20Wands.jpg", "Королева Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Queen%20of%20Wands.jpg", "Король Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20King%20of%20Wands.jpg", "Туз Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Ace%20of%20Cups.jpg", "2 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%202%20of%20Cups.jpg", "3 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%203%20of%20Cups.jpg", "4 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%204%20of%20Cups.jpg", "5 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%205%20of%20Cups.jpg", "6 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%206%20of%20Cups.jpg", "7 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%207%20of%20Cups.jpg", "8 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%208%20of%20Cups.jpg", "9 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%209%20of%20Cups.jpg", "10 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2010%20of%20Cups.jpg", "Паж Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Page%20of%20Cups.jpg", "Рыцарь Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Knight%20of%20Cups.jpg", "Королева Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Queen%20of%20Cups.jpg", "Король Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20King%20of%20Cups.jpg", "Туз Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Ace%20of%20Swords.jpg", "2 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%202%20of%20Swords.jpg", "3 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%203%20of%20Swords.jpg", "4 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%204%20of%20Swords.jpg", "5 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%205%20of%20Swords.jpg", "6 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%206%20of%20Swords.jpg", "7 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%207%20of%20Swords.jpg", "8 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%208%20of%20Swords.jpg", "9 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%209%20of%20Swords.jpg", "10 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2010%20of%20Swords.jpg", "Паж Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Page%20of%20Swords.jpg", "Рыцарь Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Knight%20of%20Swords.jpg", "Королева Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Queen%20of%20Swords.jpg", "Король Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20King%20of%20Swords.jpg", "Туз Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Ace%20of%20Pentacles.jpg", "2 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%202%20of%20Pentacles.jpg", "3 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%203%20of%20Pentacles.jpg", "4 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%204%20of%20Pentacles.jpg", "5 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%205%20of%20Pentacles.jpg", "6 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%206%20of%20Pentacles.jpg", "7 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%207%20of%20Pentacles.jpg", "8 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%208%20of%20Pentacles.jpg", "9 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%209%20of%20Pentacles.jpg", "10 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2010%20of%20Pentacles.jpg", "Паж Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Page%20of%20Pentacles.jpg", "Рыцарь Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Knight%20of%20Pentacles.jpg", "Королева Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20Queen%20of%20Pentacles.jpg", "Король Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%20King%20of%20Pentacles.jpg"};
-
-  // --- Data (majors + minors keywords) ---
-  const MAJORS = [
-    {name:"0 Шут", score:+2, type:"major",
-      keys:{general:["новый старт","свобода","спонтанность"], love:["легкость","флирт","готовность рискнуть"], money:["новые возможности","стартап","эксперимент"]},
-      rev:{general:["безответственность","хаос","наивность"], love:["нестабильность","неопределенность"], money:["риски без плана","поспешность"]} },
-    {name:"I Маг", score:+3, type:"major",
-      keys:{general:["воля","инициатива","ресурсы в руках"], love:["активный шаг","притяжение","прояснение"], money:["переговоры","умение продавать","запуск"]},
-      rev:{general:["манипуляции","самообман","растрата сил"], love:["игры","давление"], money:["провал стратегии","нечестность"]} },
-    {name:"II Жрица", score:+1, type:"major",
-      keys:{general:["интуиция","тайна","внутреннее знание"], love:["чувства глубже слов","закрытость","ожидание"], money:["анализ","осторожность","детали"]},
-      rev:{general:["путаница","игнор интуиции","вскрытие тайн"], love:["недоверие","ревность"], money:["ошибки","невнимательность"]} },
-    {name:"III Императрица", score:+4, type:"major",
-      keys:{general:["рост","забота","изобилие"], love:["тепло","семейность","плод отношений"], money:["прибыль","проект растёт","комфорт"]},
-      rev:{general:["застой","перерасход","леность"], love:["контроль","остывание"], money:["траты","неэффективность"]} },
-    {name:"IV Император", score:+2, type:"major",
-      keys:{general:["структура","контроль","ответственность"], love:["границы","серьезность","официальность"], money:["стабильность","управление","карьера"]},
-      rev:{general:["жесткость","тирания","потеря контроля"], love:["холод","давление"], money:["конфликт","риски статуса"]} },
-    {name:"V Иерофант", score:+1, type:"major",
-      keys:{general:["традиции","учитель","правила"], love:["официальный союз","ценности","семья"], money:["система","обучение","структура"]},
-      rev:{general:["бунт","лицемерие","свои правила"], love:["разные ценности","скрытность"], money:["обход правил","нестандартно"]} },
-    {name:"VI Влюблённые", score:+4, type:"major",
-      keys:{general:["выбор","союз","гармония"], love:["взаимность","признание","сближение"], money:["партнёрство","согласование","выбор"]},
-      rev:{general:["сомнения","дисбаланс","третьи лица"], love:["неверность","расхождение"], money:["невыгодно","разногласия"]} },
-    {name:"VII Колесница", score:+3, type:"major",
-      keys:{general:["движение","победа","курс"], love:["решительность","шаг навстречу","поездка"], money:["прорыв","продвижение","цель"]},
-      rev:{general:["срыв","спешка","потеря курса"], love:["давление","соревнование"], money:["перегорание","препятствия"]} },
-    {name:"VIII Сила", score:+3, type:"major",
-      keys:{general:["стойкость","смелость","мягкая власть"], love:["страсть","терпение","принятие"], money:["выдержка","переговоры","долгая игра"]},
-      rev:{general:["страх","вспыльчивость","слабость"], love:["ревность","неуверенность"], money:["эмоции","срывы"]} },
-    {name:"IX Отшельник", score:-1, type:"major",
-      keys:{general:["пауза","поиск смысла","уединение"], love:["дистанция","переосмысление","осторожность"], money:["анализ","экономия","одиночно"]},
-      rev:{general:["изоляция","застревание","закрытость"], love:["холод","уход"], money:["упущено"]} },
-    {name:"X Колесо Фортуны", score:+2, type:"major",
-      keys:{general:["поворот судьбы","цикл","шанс"], love:["смена этапа","неожиданность","судьбоносно"], money:["удача","окно","рынок"]},
-      rev:{general:["задержки","нестабильно","не время"], love:["качели","повтор"], money:["волатильность","потери"]} },
-    {name:"XI Справедливость", score:+1, type:"major",
-      keys:{general:["баланс","закон","честность"], love:["ответственность","по фактам","ясность"], money:["документы","контракты","расчёт"]},
-      rev:{general:["перекос","несправедливо","суд"], love:["обиды","нечестно"], money:["штрафы","ошибки"]} },
-    {name:"XII Повешенный", score:-1, type:"major",
-      keys:{general:["пауза","новый взгляд","переоценка"], love:["ожидание","уступка","переосмысление"], money:["заморозка","пересборка","терпение"]},
-      rev:{general:["застой","упрямство","впустую"], love:["созависимость","затяжка"], money:["потеря времени"]} },
-    {name:"XIII Смерть", score:0, type:"major",
-      keys:{general:["конец этапа","обновление","перерождение"], love:["закрытие прошлого","новая глава","переход"], money:["реорганизация","перезапуск","резко"]},
-      rev:{general:["страх перемен","цепляние","затяжной финал"], love:["не отпускает"], money:["сопротивление"]} },
-    {name:"XIV Умеренность", score:+2, type:"major",
-      keys:{general:["гармония","исцеление","плавность"], love:["компромисс","мир","восстановление"], money:["стабилизация","оптимизация","ритм"]},
-      rev:{general:["нет меры","перекос","срыв"], love:["нет согласия"], money:["разбаланс"]} },
-    {name:"XV Дьявол", score:-3, type:"major",
-      keys:{general:["искушение","зависимости","материя"], love:["страсть","привязка","ревность"], money:["крупные деньги","риски","кредиты"]},
-      rev:{general:["освобождение","разрыв цепей","трезвость"], love:["выход из токсичности"], money:["выход из схем"]} },
-    {name:"XVI Башня", score:-4, type:"major",
-      keys:{general:["кризис","ломка","вскрытие правды"], love:["скандал","резко","разрыв"], money:["обвал","срыв","расходы"]},
-      rev:{general:["напряжение","хрупкость","отложено"], love:["подавлено"], money:["риски растут"]} },
-    {name:"XVII Звезда", score:+3, type:"major",
-      keys:{general:["надежда","вдохновение","путь"], love:["романтика","исцеление","вера"], money:["перспектива","репутация","рост"]},
-      rev:{general:["сомнения","разочарование","тускнеет"], love:["идеализация","охлаждение"], money:["нет веры"]} },
-    {name:"XVIII Луна", score:-2, type:"major",
-      keys:{general:["иллюзии","страхи","подсознание"], love:["тайны","сомнения","эмоции"], money:["туман","обман","неясность"]},
-      rev:{general:["прояснение","факты","выход из страхов"], love:["откровенность"], money:["правда"]} },
-    {name:"XIX Солнце", score:+5, type:"major",
-      keys:{general:["успех","радость","ясность"], love:["счастье","открытость","тепло"], money:["прибыль","признание","рост"]},
-      rev:{general:["выгорание","гордыня","задержка"], love:["эго","недосказанность"], money:["перерасход"]} },
-    {name:"XX Суд", score:+2, type:"major",
-      keys:{general:["пробуждение","решение","второй шанс"], love:["разговор по сути","возврат","пересборка"], money:["итоги","аудит","перезапуск"]},
-      rev:{general:["страх оценки","застревание","не слышит"], love:["обиды","не готов"], money:["не закрыто"]} },
-    {name:"XXI Мир", score:+4, type:"major",
-      keys:{general:["завершение","целостность","уровень"], love:["зрелый союз","гармония","итог"], money:["завершение проекта","расширение","масштаб"]},
-      rev:{general:["незавершенность","петля","нет точки"], love:["не готово"], money:["зависло"]} },
-  ];
-  const SUITS = [
-    {suit:"Жезлов", score:+1, g:["действие","энергия"], l:["инициатива","страсть"], m:["рост","продвижение"]},
-    {suit:"Кубков", score:+1, g:["чувства","отношения"], l:["эмоции","любовь"], m:["клиенты","сервис"]},
-    {suit:"Мечей", score:0, g:["мысли","выбор"], l:["разговор","границы"], m:["решение","контракт"]},
-    {suit:"Пентаклей", score:+1, g:["материя","быт"], l:["стабильность","забота"], m:["деньги","результат"]},
-  ];
-  const RANKS = [
-    {rank:"Туз", score:+2, g:["начало","шанс"], l:["искра","первый шаг"], m:["новый поток"]},
-    {rank:"2", score:+1, g:["баланс","выбор"], l:["сближение/пауза"], m:["планирование"]},
-    {rank:"3", score:+2, g:["рост","команда"], l:["поддержка"], m:["проект"]},
-    {rank:"4", score:+1, g:["стабильность","пауза"], l:["дом/границы"], m:["фиксирование"]},
-    {rank:"5", score:-2, g:["кризис","конфликт"], l:["ссора/ревность"], m:["потери/борьба"]},
-    {rank:"6", score:+2, g:["улучшение","движение"], l:["гармония/свидание"], m:["прогресс"]},
-    {rank:"7", score:0, g:["испытание","защита"], l:["сомнения"], m:["конкуренция"]},
-    {rank:"8", score:+2, g:["скорость","работа"], l:["сообщения"], m:["интенсивность"]},
-    {rank:"9", score:0, g:["предел","опыт"], l:["глубина/тревога"], m:["ответственность"]},
-    {rank:"10", score:0, g:["итог","перегруз"], l:["кульминация"], m:["финал этапа"]},
-    {rank:"Паж", score:+1, g:["новость","ученик"], l:["сообщение","интерес"], m:["идея/старт"]},
-    {rank:"Рыцарь", score:+1, g:["рывок","движение"], l:["порыв"], m:["инициатива"]},
-    {rank:"Королева", score:+1, g:["забота","интуиция"], l:["женская энергия"], m:["управление мягко"]},
-    {rank:"Король", score:+1, g:["контроль","решение"], l:["опора/лидер"], m:["результат"]},
-  ];
-  function makeMinor(){
-    const out=[];
-    for(const s of SUITS){
-      for(const r of RANKS){
-        out.push({
-          name:`${r.rank} ${s.suit}`, type:"minor", suit:s.suit, rank:r.rank,
-          score:(s.score + r.score),
-          keys:{general:[...r.g,...s.g], love:[...r.l,...s.l], money:[...r.m,...s.m]},
-          rev:{general:["блок","задержка","искажение"], love:["охлаждение","неясность","закрытость"], money:["препятствия","ошибка","задержка"]}
-        });
-      }
-    }
-    return out;
-  }
-  const FULL=[...MAJORS, ...makeMinor()];
-  const getCard=(name)=>FULL.find(x=>x.name===name);
-  function pickKeys(card, theme, orient){
-    const src = orient==="rev" ? card.rev : card.keys;
-    const arr = (src && src[theme]) ? src[theme] : (src ? src.general : []);
-    return (arr||[]).slice(0,3);
-  }
-  function scoreFor(card, orient){ const base=(card.score??0); return orient==="rev" ? -base : base; }
-  function themeLabel(theme){ return theme==="love" ? "Любовь" : (theme==="money" ? "Деньги/работа" : "Общее"); }
-
-  const container=document.getElementById("cardsContainer");
-  const previewWrap=document.getElementById("previewWrap");
-
-  function positionLabels(spread, layout){
-    if(spread===2){
-      if(layout==="situationadviceoutcome") return ["Ситуация","Совет"];
-      if(layout==="pastpresentfuture") return ["Прошлое","Будущее"];
-      return ["Причина","Итог"];
-    }
-    if(spread===3){
-      if(layout==="situationadviceoutcome") return ["Ситуация","Совет","Итог"];
-      if(layout==="pastpresentfuture") return ["Прошлое","Настоящее","Будущее"];
-      return ["Причина","Суть","Итог"];
-    }
-    return ["Причина","Суть","Что помогает","Что мешает","Итог"];
-  }
-  function fillSelect(sel){ FULL.forEach(c=>{ const o=document.createElement("option"); o.value=c.name; o.textContent=c.name; sel.appendChild(o); }); }
-  function buildCardBlock(i,label){
-    const div=document.createElement("div");
-    div.innerHTML=`
-      <label for="c${i}">Карта ${i} (${label})</label>
-      <select id="c${i}"></select>
-      <div class="row" style="margin-top:8px">
-        <div>
-          <label for="o${i}">Положение</label>
-          <select id="o${i}">
-            <option value="up">Прямое</option>
-            <option value="rev">Перевёрнутое</option>
-          </select>
-        </div>
-        <div>
-          <label for="t${i}">Тема (локально)</label>
-          <select id="t${i}">
-            <option value="inherit" selected>Как общая</option>
-            <option value="general">Общее</option>
-            <option value="love">Любовь</option>
-            <option value="money">Деньги/работа</option>
-          </select>
-        </div>
-      </div>
-    `;
-    return div;
-  }
-  function renderCards(){
-    const spread=parseInt(document.getElementById("spread").value,10);
-    const layout=document.getElementById("layout").value;
-    const labels=positionLabels(spread,layout);
-    container.innerHTML="";
-    for(let i=1;i<=spread;i++){ container.appendChild(buildCardBlock(i,labels[i-1])); fillSelect(document.getElementById(`c${i}`)); }
-    const defaults=["0 Шут","I Маг","II Жрица","VI Влюблённые","X Колесо Фортуны"];
-    for(let i=1;i<=spread;i++) document.getElementById(`c${i}`).value = defaults[i-1] || FULL[0].name;
-    updatePreviews();
-  }
-  document.getElementById("spread").addEventListener("change", renderCards);
-  document.getElementById("layout").addEventListener("change", renderCards);
-  container.addEventListener("change",(e)=>{ if(e.target && (/^(c|o|t)\d+$/.test(e.target.id))) updatePreviews(); });
-
-  function getSelection(){
-    const spread=parseInt(document.getElementById("spread").value,10);
-    const layout=document.getElementById("layout").value;
-    const labels=positionLabels(spread,layout);
-    const themeAll=document.getElementById("themeAll").value;
-    const arr=[];
-    for(let i=1;i<=spread;i++){ 
-      const name=document.getElementById(`c${i}`).value;
-      const o=document.getElementById(`o${i}`).value;
-      const tLocal=document.getElementById(`t${i}`).value;
-      const theme=(tLocal==="inherit")?themeAll:tLocal;
-      const card=getCard(name);
-      arr.push({i,label:labels[i-1], name, o, theme, card, keys:pickKeys(card,theme,o)});
-    }
-    return {spread,layout,labels,themeAll,arr};
-  }
-  function updatePreviews(){
-    const sel=getSelection();
-    previewWrap.innerHTML="";
-    sel.arr.forEach(x=>{
-      const div=document.createElement("div");
-      div.className="tarotCard";
-      const orient = x.o==="rev" ? "Перевёрнутое" : "Прямое";
-      const imgUrl = IMG[x.name] || "";
-      div.innerHTML = `
-        <div class="tarotTitle">${x.name}</div>
-        <div class="tarotSub">${x.label} • ${orient} • ${themeLabel(x.theme)}</div>
-        <div class="imgBox">
-          <img src="${imgUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="}" alt="card" />
-          <div style="flex:1">
-            <div class="tarotKeys">${x.keys.join(" • ")}</div>
-            <div class="tarotSub" style="margin-top:8px">Баланс: ${scoreFor(x.card,x.o)}</div>
-          </div>
-        </div>
-      `;
-      previewWrap.appendChild(div);
-    });
-  }
-
-  function yesNoResult(sel){
-    const total = sel.arr.reduce((s,x)=>s + scoreFor(x.card,x.o),0);
-    const normalized = total / Math.max(1, sel.spread*3);
-    let verdict="СМЕШАННО";
-    if(normalized >= 0.45) verdict="ДА";
-    else if(normalized <= -0.45) verdict="НЕТ";
-    else if(normalized >= 0.15) verdict="СКОРЕЕ ДА";
-    else if(normalized <= -0.15) verdict="СКОРЕЕ НЕТ";
-    const confidence = Math.min(95, Math.max(55, Math.round(60 + Math.abs(normalized)*70)));
-    return {verdict, confidence, total};
-  }
-  function styleWrap(text){
-    const style=document.getElementById("style").value;
-    if(style==="short") return text.split("\n").slice(0,10).join("\n");
-    if(style==="direct") return text;
-    return text.replaceAll("Совет:", "Мягкий совет:");
-  }
-  function generateInterpret(sel){
-    const tLabel=themeLabel(sel.themeAll);
-    const anyRev=sel.arr.some(x=>x.o==="rev");
-    const tone= anyRev ? "предупреждающий" : "ресурсный";
-    const majCount= sel.arr.filter(x=>x.card.type==="major").length;
-    const title=document.getElementById("title").value.trim();
-    const client=document.getElementById("client").value.trim();
-    const question=document.getElementById("question").value.trim();
-    const meta=[title && `Метка: ${title}`, client && `Имя: ${client}`, question && `Вопрос: ${question}`].filter(Boolean).join("\n");
-    const lines = sel.arr.map(x=>`${x.i}) ${x.label} (${x.name}${x.o==="rev"?" ⟲":""}): ${x.keys.join(", ")}.`);
-    let synth="";
-    if(sel.spread===2){ const a=sel.arr[0], b=sel.arr[1]; synth=`Сюжет: «${a.keys[0]||"истоки"}» влияет на «${b.keys[0]||"итог"}».\nКлюч: усиливайте «${a.keys[1]||a.keys[0]||"фокус"}», чтобы получить «${b.keys[1]||b.keys[0]||"ясность"}».`; }
-    else if(sel.spread===3){ const a=sel.arr[0], b=sel.arr[1], c=sel.arr[2]; synth=`Сюжет: из «${a.keys[0]||"истоков"}» вы входите в «${b.keys[0]||"суть"}», и это ведёт к «${c.keys[0]||"итогу"}».\nКлюч: фокус на «${b.keys[1]||b.keys[0]||"главном"}» → результат «${c.keys[1]||c.keys[0]||"яснее"}».`; }
-    else { const a=sel.arr[0], b=sel.arr[1], help=sel.arr[2], block=sel.arr[3], out=sel.arr[4];
-      synth=`Сюжет: причина «${a.keys[0]||"истоки"}» формирует суть «${b.keys[0]||"ядро"}».\nПомогает: «${help.keys[0]||"ресурс"}». Мешает: «${block.keys[0]||"препятствие"}».\nИтог: опора на «${help.keys[1]||help.keys[0]||"ресурс"}» и снижение «${block.keys[1]||block.keys[0]||"препятствие"}» ведут к «${out.keys[0]||"результату"}».`; }
-    let advice = tone==="предупреждающий"
-      ? "Совет: снижайте импульсивность, перепроверяйте договорённости и факты, действуйте по шагам."
-      : "Совет: выберите один конкретный шаг на ближайшие 7 дней (сообщение/действие/план) и закрепите результат.";
-    let majorNote="";
-    if(majCount>=2) majorNote="⚡ Много Старших Арканов: ситуация важная/судьбоносная — смотрите на урок и выбор.";
-    else if(majCount===1) majorNote="✨ Есть Старший Аркан: он задаёт главный фон и направление.";
-    const header = `Расклад: ${sel.spread} карт\nТема: ${tLabel}\nТон: ${tone}\nДата: ${new Date().toLocaleString()}\n`;
-    return `${header}${meta?("\n"+meta+"\n"):"\n"}${lines.join("\n")}\n\n${synth}\n${advice}${majorNote?("\n\n"+majorNote):""}`;
-  }
-  function generateYesNo(sel){
-    const q=document.getElementById("question").value.trim();
-    const r=yesNoResult(sel);
-    const cardsLine = sel.arr.map(x=>`${x.name}${x.o==="rev"?"⟲":""}`).join(" + ");
-    const expl = sel.arr.map(x=>`- ${x.name}${x.o==="rev"?" ⟲":""}: ${x.keys.join(", ")}`).join("\n");
-    return `Вопрос: ${q||"(не указан)"}\n\nОтвет: ${r.verdict}\nУверенность: ~${r.confidence}%\nСуммарный баланс: ${r.total}\n\nКарты: ${cardsLine}\n\nПочему так:\n${expl}\n\nПодсказка: если “смешанно” — уточните вопрос или сделайте расклад на 5 карт.`;
-  }
-  function generateClient(sel){
-    const title=document.getElementById("title").value.trim();
-    const client=document.getElementById("client").value.trim();
-    const q=document.getElementById("question").value.trim();
-    const yn=yesNoResult(sel);
-    const ynLine = q ? `Да/Нет (по балансу): ${yn.verdict} (~${yn.confidence}%)` : "";
-    const base = generateInterpret(sel);
-    return `КЛИЕНТСКИЙ ОТЧЁТ\nДата: ${new Date().toLocaleString()}\n${client?("Клиент: "+client+"\n"):""}${title?("Метка: "+title+"\n"):""}${q?("Вопрос: "+q+"\n"):""}${ynLine?("\n"+ynLine+"\n"):""}\n------------------------------\n${base}\n\nКраткое резюме (1–2 фразы):\n- Главная тема: ____________________________\n- Следующий шаг: __________________________\n`;
-  }
-  function generate(){
-    const mode=document.getElementById("mode").value;
-    const sel=getSelection();
-    let txt=(mode==="yesno")?generateYesNo(sel):(mode==="client")?generateClient(sel):generateInterpret(sel);
-    return styleWrap(txt);
-  }
-  function showResult(text){ document.getElementById("txt").textContent=text; document.getElementById("out").style.display="block"; document.getElementById("out").scrollIntoView({behavior:"smooth",block:"start"}); }
-
-  document.getElementById("btnDark").addEventListener("click", ()=>document.body.classList.toggle("dark"));
-  document.getElementById("btnReset").addEventListener("click", ()=>{ document.getElementById("title").value=""; document.getElementById("client").value=""; document.getElementById("question").value=""; renderCards(); alert("Сброшено."); });
-  document.getElementById("btnGo").addEventListener("click", ()=>showResult(generate()));
-  document.getElementById("btnCopy").addEventListener("click", async ()=>{ const text=generate(); try{ await navigator.clipboard.writeText(text); alert("Скопировано!"); } catch(e){ const ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); alert("Скопировано!"); } });
-  document.getElementById("btnPrint").addEventListener("click", ()=>{ showResult(generate()); window.print(); });
-
-  const KEY="tarot_pwa_history_v8";
-  function loadHistory(){ try{return JSON.parse(localStorage.getItem(KEY)||"[]");}catch(e){return [];} }
-  function saveHistory(items){ localStorage.setItem(KEY, JSON.stringify(items)); renderHistory(); }
-  const nowISO=()=>new Date().toISOString();
-  function currentCards(){ const spread=parseInt(document.getElementById("spread").value,10); const arr=[]; for(let i=1;i<=spread;i++) arr.push(document.getElementById(`c${i}`).value + (document.getElementById(`o${i}`).value==="rev"?"⟲":"")); return arr; }
-  function renderHistory(){
-    const box=document.getElementById("history");
-    const items=loadHistory();
-    if(!items.length){ box.innerHTML = `<div class="item" style="cursor:default"><b>Пока пусто</b><small>Сохраните расклад, чтобы он появился здесь.</small></div>`; return; }
-    box.innerHTML="";
-    items.slice().reverse().forEach((it)=>{
-      const title = [it.title,it.client].filter(Boolean).join(" • ") || `${it.mode} • ${it.spread} карт`;
-      const date = new Date(it.date).toLocaleString();
-      const div=document.createElement("div");
-      div.className="item";
-      div.innerHTML=`<b>${title}</b><small>${date} — ${it.cards.join(" + ")}</small>`;
-      div.addEventListener("click", ()=>showResult(it.text));
-      box.appendChild(div);
-    });
-  }
-  document.getElementById("btnSave").addEventListener("click", ()=>{
-    const text=generate();
-    const items=loadHistory();
-    items.push({date: nowISO(), mode: document.getElementById("mode").value, spread: parseInt(document.getElementById("spread").value,10),
-      title: document.getElementById("title").value.trim(), client: document.getElementById("client").value.trim(),
-      question: document.getElementById("question").value.trim(), cards: currentCards(), text });
-    saveHistory(items); showResult(text); alert("Сохранено.");
-  });
-  document.getElementById("btnClear").addEventListener("click", ()=>{ if(confirm("Точно очистить историю?")){ localStorage.removeItem(KEY); renderHistory(); } });
-  document.getElementById("btnExport").addEventListener("click", async ()=>{ const data=localStorage.getItem(KEY)||"[]"; document.getElementById("import").value=data; try{ await navigator.clipboard.writeText(data); alert("JSON скопирован."); } catch(e){ alert("Скопируйте JSON из поля вручную."); } });
-  document.getElementById("btnImport").addEventListener("click", ()=>{ const raw=document.getElementById("import").value.trim(); if(!raw) return; try{ const parsed=JSON.parse(raw); if(!Array.isArray(parsed)) throw new Error("not array"); saveHistory(parsed); alert("Импортировано."); } catch(e){ alert("Ошибка JSON."); } });
-
-  renderCards(); renderHistory();
-
-  if("serviceWorker" in navigator){
-    navigator.serviceWorker.register("./service-worker.js").then(()=>{
-      const el=document.getElementById("net"); el.style.display="block"; if(!navigator.onLine) el.textContent="✓ Приложение в офлайне";
-    }).catch(()=>{
-      const el=document.getElementById("net"); el.style.display="block"; el.classList.add("bad"); el.textContent="⚠️ Service Worker не активирован (проверьте HTTPS/установку)";
-    });
-  }
-</script>
-</body>
-</html>
+const IMG = {"0 Шут": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2000%20Fool.jpg", "I Маг": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2001%20Magician.jpg", "II Жрица": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2002%20High%20Priestess.jpg", "III Императрица": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2003%20Empress.jpg", "IV Император": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2004%20Emperor.jpg", "V Иерофант": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2005%20Hierophant.jpg", "VI Влюблённые": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2006%20Lovers.jpg", "VII Колесница": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2007%20Chariot.jpg", "VIII Сила": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2008%20Strength.jpg", "IX Отшельник": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2009%20Hermit.jpg", "X Колесо Фортуны": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2010%20Wheel%20of%20Fortune.jpg", "XI Справедливость": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2011%20Justice.jpg", "XII Повешенный": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2012%20Hanged%20Man.jpg", "XIII Смерть": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2013%20Death.jpg", "XIV Умеренность": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2014%20Temperance.jpg", "XV Дьявол": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2015%20Devil.jpg", "XVI Башня": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2016%20Tower.jpg", "XVII Звезда": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2017%20Star.jpg", "XVIII Луна": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2018%20Moon.jpg", "XIX Солнце": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2019%20Sun.jpg", "XX Суд": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2020%20Judgement.jpg", "XXI Мир": "https://commons.wikimedia.org/wiki/Special:FilePath/RWS%20Tarot%2021%20World.jpg", "Туз Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands01.jpg", "2 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands02.jpg", "3 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands03.jpg", "4 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands04.jpg", "5 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands05.jpg", "6 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands06.jpg", "7 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands07.jpg", "8 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands08.jpg", "9 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands09.jpg", "10 Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands10.jpg", "Паж Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands11.jpg", "Рыцарь Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands12.jpg", "Королева Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands13.jpg", "Король Жезлов": "https://commons.wikimedia.org/wiki/Special:FilePath/Wands14.jpg", "Туз Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups01.jpg", "2 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups02.jpg", "3 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups03.jpg", "4 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups04.jpg", "5 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups05.jpg", "6 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups06.jpg", "7 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups07.jpg", "8 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups08.jpg", "9 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups09.jpg", "10 Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups10.jpg", "Паж Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups11.jpg", "Рыцарь Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups12.jpg", "Королева Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups13.jpg", "Король Кубков": "https://commons.wikimedia.org/wiki/Special:FilePath/Cups14.jpg", "Туз Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords01.jpg", "2 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords02.jpg", "3 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords03.jpg", "4 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords04.jpg", "5 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords05.jpg", "6 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords06.jpg", "7 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords07.jpg", "8 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords08.jpg", "9 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords09.jpg", "10 Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords10.jpg", "Паж Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords11.jpg", "Рыцарь Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords12.jpg", "Королева Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords13.jpg", "Король Мечей": "https://commons.wikimedia.org/wiki/Special:FilePath/Swords14.jpg", "Туз Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles01.jpg", "2 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles02.jpg", "3 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles03.jpg", "4 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles04.jpg", "5 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles05.jpg", "6 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles06.jpg", "7 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles07.jpg", "8 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles08.jpg", "9 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles09.jpg", "10 Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles10.jpg", "Паж Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles11.jpg", "Рыцарь Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles12.jpg", "Королева Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles13.jpg", "Король Пентаклей": "https://commons.wikimedia.org/wiki/Special:FilePath/Pentacles14.jpg"};
+const MAJORS = [{"name": "0 Шут", "score": 2, "type": "major", "element": "air", "keys": {"general": ["новый старт", "свобода", "спонтанность"], "love": ["легкость", "флирт", "готовность рискнуть"], "money": ["новые возможности", "стартап", "эксперимент"]}, "rev": {"general": ["безответственность", "хаос", "наивность"], "love": ["нестабильность", "неопределенность"], "money": ["риски без плана", "поспешность"]}}, {"name": "I Маг", "score": 3, "type": "major", "element": "air", "keys": {"general": ["воля", "инициатива", "ресурсы в руках"], "love": ["активный шаг", "притяжение", "прояснение"], "money": ["переговоры", "умение продавать", "запуск"]}, "rev": {"general": ["манипуляции", "самообман", "растрата сил"], "love": ["игры", "давление"], "money": ["провал стратегии", "нечестность"]}}, {"name": "II Жрица", "score": 1, "type": "major", "element": "water", "keys": {"general": ["интуиция", "тайна", "внутреннее знание"], "love": ["чувства глубже слов", "закрытость", "ожидание"], "money": ["анализ", "осторожность", "детали"]}, "rev": {"general": ["путаница", "игнор интуиции", "вскрытие тайн"], "love": ["недоверие", "ревность"], "money": ["ошибки", "невнимательность"]}}, {"name": "III Императрица", "score": 4, "type": "major", "element": "earth", "keys": {"general": ["рост", "забота", "изобилие"], "love": ["тепло", "семейность", "плод отношений"], "money": ["прибыль", "проект растёт", "комфорт"]}, "rev": {"general": ["застой", "перерасход", "леность"], "love": ["контроль", "остывание"], "money": ["траты", "неэффективность"]}}, {"name": "IV Император", "score": 2, "type": "major", "element": "fire", "keys": {"general": ["структура", "контроль", "ответственность"], "love": ["границы", "серьезность", "официальность"], "money": ["стабильность", "управление", "карьера"]}, "rev": {"general": ["жесткость", "тирания", "потеря контроля"], "love": ["холод", "давление"], "money": ["конфликт", "риски статуса"]}}, {"name": "V Иерофант", "score": 1, "type": "major", "element": "earth", "keys": {"general": ["традиции", "учитель", "правила"], "love": ["официальный союз", "ценности", "семья"], "money": ["система", "обучение", "структура"]}, "rev": {"general": ["бунт", "лицемерие", "свои правила"], "love": ["разные ценности", "скрытность"], "money": ["обход правил", "нестандартно"]}}, {"name": "VI Влюблённые", "score": 4, "type": "major", "element": "air", "keys": {"general": ["выбор", "союз", "гармония"], "love": ["взаимность", "признание", "сближение"], "money": ["партнёрство", "согласование", "выбор"]}, "rev": {"general": ["сомнения", "дисбаланс", "третьи лица"], "love": ["неверность", "расхождение"], "money": ["невыгодно", "разногласия"]}}, {"name": "VII Колесница", "score": 3, "type": "major", "element": "water", "keys": {"general": ["движение", "победа", "курс"], "love": ["решительность", "шаг навстречу", "поездка"], "money": ["прорыв", "продвижение", "цель"]}, "rev": {"general": ["срыв", "спешка", "потеря курса"], "love": ["давление", "соревнование"], "money": ["перегорание", "препятствия"]}}, {"name": "VIII Сила", "score": 3, "type": "major", "element": "fire", "keys": {"general": ["стойкость", "смелость", "мягкая власть"], "love": ["страсть", "терпение", "принятие"], "money": ["выдержка", "переговоры", "долгая игра"]}, "rev": {"general": ["страх", "вспыльчивость", "слабость"], "love": ["ревность", "неуверенность"], "money": ["эмоции", "срывы"]}}, {"name": "IX Отшельник", "score": -1, "type": "major", "element": "earth", "keys": {"general": ["пауза", "поиск смысла", "уединение"], "love": ["дистанция", "переосмысление", "осторожность"], "money": ["анализ", "экономия", "одиночно"]}, "rev": {"general": ["изоляция", "застревание", "закрытость"], "love": ["холод", "уход"], "money": ["упущено"]}}, {"name": "X Колесо Фортуны", "score": 2, "type": "major", "element": "fire", "keys": {"general": ["поворот судьбы", "цикл", "шанс"], "love": ["смена этапа", "неожиданность", "судьбоносно"], "money": ["удача", "окно", "рынок"]}, "rev": {"general": ["задержки", "нестабильно", "не время"], "love": ["качели", "повтор"], "money": ["волатильность", "потери"]}}, {"name": "XI Справедливость", "score": 1, "type": "major", "element": "air", "keys": {"general": ["баланс", "закон", "честность"], "love": ["ответственность", "по фактам", "ясность"], "money": ["документы", "контракты", "расчёт"]}, "rev": {"general": ["перекос", "несправедливо", "суд"], "love": ["обиды", "нечестно"], "money": ["штрафы", "ошибки"]}}, {"name": "XII Повешенный", "score": -1, "type": "major", "element": "water", "keys": {"general": ["пауза", "новый взгляд", "переоценка"], "love": ["ожидание", "уступка", "переосмысление"], "money": ["заморозка", "пересборка", "терпение"]}, "rev": {"general": ["застой", "упрямство", "впустую"], "love": ["созависимость", "затяжка"], "money": ["потеря времени"]}}, {"name": "XIII Смерть", "score": 0, "type": "major", "element": "water", "keys": {"general": ["конец этапа", "обновление", "перерождение"], "love": ["закрытие прошлого", "новая глава", "переход"], "money": ["реорганизация", "перезапуск", "резко"]}, "rev": {"general": ["страх перемен", "цепляние", "затяжной финал"], "love": ["не отпускает"], "money": ["сопротивление"]}}, {"name": "XIV Умеренность", "score": 2, "type": "major", "element": "fire", "keys": {"general": ["гармония", "исцеление", "плавность"], "love": ["компромисс", "мир", "восстановление"], "money": ["стабилизация", "оптимизация", "ритм"]}, "rev": {"general": ["нет меры", "перекос", "срыв"], "love": ["нет согласия"], "money": ["разбаланс"]}}, {"name": "XV Дьявол", "score": -3, "type": "major", "element": "earth", "keys": {"general": ["искушение", "зависимости", "материя"], "love": ["страсть", "привязка", "ревность"], "money": ["крупные деньги", "риски", "кредиты"]}, "rev": {"general": ["освобождение", "разрыв цепей", "трезвость"], "love": ["выход из токсичности"], "money": ["выход из схем"]}}, {"name": "XVI Башня", "score": -4, "type": "major", "element": "fire", "keys": {"general": ["кризис", "ломка", "вскрытие правды"], "love": ["скандал", "резко", "разрыв"], "money": ["обвал", "срыв", "расходы"]}, "rev": {"general": ["напряжение", "хрупкость", "отложено"], "love": ["подавлено"], "money": ["риски растут"]}}, {"name": "XVII Звезда", "score": 3, "type": "major", "element": "air", "keys": {"general": ["надежда", "вдохновение", "путь"], "love": ["романтика", "исцеление", "вера"], "money": ["перспектива", "репутация", "рост"]}, "rev": {"general": ["сомнения", "разочарование", "тускнеет"], "love": ["идеализация", "охлаждение"], "money": ["нет веры"]}}, {"name": "XVIII Луна", "score": -2, "type": "major", "element": "water", "keys": {"general": ["иллюзии", "страхи", "подсознание"], "love": ["тайны", "сомнения", "эмоции"], "money": ["туман", "обман", "неясность"]}, "rev": {"general": ["прояснение", "факты", "выход из страхов"], "love": ["откровенность"], "money": ["правда"]}}, {"name": "XIX Солнце", "score": 5, "type": "major", "element": "fire", "keys": {"general": ["успех", "радость", "ясность"], "love": ["счастье", "открытость", "тепло"], "money": ["прибыль", "признание", "рост"]}, "rev": {"general": ["выгорание", "гордыня", "задержка"], "love": ["эго", "недосказанность"], "money": ["перерасход"]}}, {"name": "XX Суд", "score": 2, "type": "major", "element": "fire", "keys": {"general": ["пробуждение", "решение", "второй шанс"], "love": ["разговор по сути", "возврат", "пересборка"], "money": ["итоги", "аудит", "перезапуск"]}, "rev": {"general": ["страх оценки", "застревание", "не слышит"], "love": ["обиды", "не готов"], "money": ["не закрыто"]}}, {"name": "XXI Мир", "score": 4, "type": "major", "element": "earth", "keys": {"general": ["завершение", "целостность", "уровень"], "love": ["зрелый союз", "гармония", "итог"], "money": ["завершение проекта", "расширение", "масштаб"]}, "rev": {"general": ["незавершенность", "петля", "нет точки"], "love": ["не готово"], "money": ["зависло"]}}];
+const SUITS=[{suit:"Жезлов",score:+1,element:"fire",g:["действие","энергия"],l:["инициатива","страсть"],m:["рост","продвижение"]},{suit:"Кубков",score:+1,element:"water",g:["чувства","отношения"],l:["эмоции","любовь"],m:["клиенты","сервис"]},{suit:"Мечей",score:0,element:"air",g:["мысли","выбор"],l:["разговор","границы"],m:["решение","контракт"]},{suit:"Пентаклей",score:+1,element:"earth",g:["материя","быт"],l:["стабильность","забота"],m:["деньги","результат"]},];
+const RANKS=[{rank:"Туз",score:+2,g:["начало","шанс"],l:["искра","первый шаг"],m:["новый поток"]},{rank:"2",score:+1,g:["баланс","выбор"],l:["сближение/пауза"],m:["планирование"]},{rank:"3",score:+2,g:["рост","команда"],l:["поддержка"],m:["проект"]},{rank:"4",score:+1,g:["стабильность","пауза"],l:["дом/границы"],m:["фиксирование"]},{rank:"5",score:-2,g:["кризис","конфликт"],l:["ссора/ревность"],m:["потери/борьба"]},{rank:"6",score:+2,g:["улучшение","движение"],l:["гармония/свидание"],m:["прогресс"]},{rank:"7",score:0,g:["испытание","защита"],l:["сомнения"],m:["конкуренция"]},{rank:"8",score:+2,g:["скорость","работа"],l:["сообщения"],m:["интенсивность"]},{rank:"9",score:0,g:["предел","опыт"],l:["глубина/тревога"],m:["ответственность"]},{rank:"10",score:0,g:["итог","перегруз"],l:["кульминация"],m:["финал этапа"]},{rank:"Паж",score:+1,g:["новость","ученик"],l:["сообщение","интерес"],m:["идея/старт"]},{rank:"Рыцарь",score:+1,g:["рывок","движение"],l:["порыв"],m:["инициатива"]},{rank:"Королева",score:+1,g:["забота","интуиция"],l:["женская энергия"],m:["управление мягко"]},{rank:"Король",score:+1,g:["контроль","решение"],l:["опора/лидер"],m:["результат"]},];
+function makeMinor(){const out=[];for(const s of SUITS){for(const r of RANKS){out.push({name:`${r.rank} ${s.suit}`,type:"minor",suit:s.suit,rank:r.rank,element:s.element,score:(s.score+r.score),keys:{general:[...r.g,...s.g],love:[...r.l,...s.l],money:[...r.m,...s.m]},rev:{general:["блок","задержка","искажение"],love:["охлаждение","неясность","закрытость"],money:["препятствия","ошибка","задержка"]}});}}return out;}
+const FULL=[...MAJORS,...makeMinor()];const getCard=(name)=>FULL.find(x=>x.name===name);
+function pickKeys(card,theme,orient){const src=(orient==="rev")?card.rev:card.keys;const arr=(src&&src[theme])?src[theme]:(src?src.general:[]);return (arr||[]).slice(0,3);}
+function scoreFor(card,orient){const base=(card.score??0);const w=(card.type==="major")?2:1;return (orient==="rev"?-base:base)*w;}
+function positionLabels(spread,layout){if(spread===2){if(layout==="situationadviceoutcome")return["Ситуация","Совет"];if(layout==="pastpresentfuture")return["Прошлое","Будущее"];return["Причина","Итог"];}if(spread===3){if(layout==="situationadviceoutcome")return["Ситуация","Совет","Итог"];if(layout==="pastpresentfuture")return["Прошлое","Настоящее","Будущее"];return["Причина","Суть","Итог"];}return["Причина","Суть","Что помогает","Что мешает","Итог"];}
+const container=document.getElementById("cardsContainer");const board=document.getElementById("board");
+function fillSelect(sel){FULL.forEach(c=>{const o=document.createElement("option");o.value=c.name;o.textContent=c.name;sel.appendChild(o);});}
+function buildCardBlock(i,label){const div=document.createElement("div");div.innerHTML=`<label for="c${i}">Карта ${i} (${label})</label><select id="c${i}"></select><div class="row" style="margin-top:8px"><div><label for="o${i}">Положение</label><select id="o${i}"><option value="up">Прямое</option><option value="rev">Перевёрнутое</option></select></div><div><label for="t${i}">Тема (локально)</label><select id="t${i}"><option value="inherit" selected>Как общая</option><option value="general">Общее</option><option value="love">Любовь</option><option value="money">Деньги/работа</option></select></div></div>`;return div;}
+function getSelection(){const spread=parseInt(document.getElementById("spread").value,10);const layout=document.getElementById("layout").value;const labels=positionLabels(spread,layout);const themeAll=document.getElementById("themeAll").value;const arr=[];for(let i=1;i<=spread;i++){const name=document.getElementById(`c${i}`).value;const o=document.getElementById(`o${i}`).value;const tLocal=document.getElementById(`t${i}`).value;const theme=(tLocal==="inherit")?themeAll:tLocal;const card=getCard(name);arr.push({i,label:labels[i-1],name,o,theme,card,keys:pickKeys(card,theme,o)});}return{spread,layout,labels,themeAll,arr};}
+function makeSlot(x,area){const wrap=document.createElement("div");wrap.className="slot";if(area)wrap.style.gridArea=area;const flip=document.createElement("div");flip.className="flip";flip.innerHTML=`<div class="flipInner"><div class="face front"><img alt="card" src="${IMG[x.name]||""}"></div><div class="face back"><div><b>${x.name}</b><div class="badge">${x.label} • ${x.o==="rev"?"Перевёрнутая":"Прямая"}</div></div></div></div>`;if(x.o==="rev")flip.style.transform="rotate(180deg)";flip.addEventListener("click",()=>flip.classList.toggle("flipped"));const keys=document.createElement("div");keys.className="badge";keys.textContent=x.keys.join(" • ");wrap.appendChild(flip);wrap.appendChild(keys);return wrap;}
+function updateBoard(){const sel=getSelection();board.innerHTML="";const grid=document.createElement("div");if(sel.spread===2)grid.className="boardGrid2";else if(sel.spread===3)grid.className="boardGrid3";else grid.className="boardGrid5";if(sel.spread===5){const areas=["c1","c2","c3","c4","c5"];sel.arr.forEach((x,idx)=>grid.appendChild(makeSlot(x,areas[idx])));}else{sel.arr.forEach(x=>grid.appendChild(makeSlot(x)));}board.appendChild(grid);}
+function renderCards(){const spread=parseInt(document.getElementById("spread").value,10);const layout=document.getElementById("layout").value;const labels=positionLabels(spread,layout);container.innerHTML="";for(let i=1;i<=spread;i++){container.appendChild(buildCardBlock(i,labels[i-1]));fillSelect(document.getElementById(`c${i}`));}const defaults=["0 Шут","I Маг","II Жрица","VI Влюблённые","X Колесо Фортуны"];for(let i=1;i<=spread;i++)document.getElementById(`c${i}`).value=defaults[i-1]||FULL[0].name;updateBoard();}
+document.getElementById("spread").addEventListener("change",renderCards);document.getElementById("layout").addEventListener("change",renderCards);container.addEventListener("change",(e)=>{if(e.target&&(/^(c|o|t)\d+$/.test(e.target.id)))updateBoard();});
+function elementOf(card){return card.element||"spirit";}function countBy(arr,fn){const m={};arr.forEach(x=>{const k=fn(x);m[k]=(m[k]||0)+1;});return m;}function topPairMessage(sel){if(sel.arr.length<2)return"";const a=sel.arr[0],b=sel.arr[1];const e1=elementOf(a.card),e2=elementOf(b.card);const same=(e1===e2);const tension=((a.o==="rev")^(b.o==="rev"));if(same&&!tension)return`Связка: элементы совпадают (${e1}) — энергия усиливается.`;if(same&&tension)return`Связка: один поток (${e1}), но есть блок (перевёрнутая карта).`;if(!same&&!tension)return`Связка: разные элементы (${e1} + ${e2}) — нужен баланс.`;return`Связка: разные элементы (${e1} + ${e2}) и разные направления — возможны качели.`;}
+const HEAVY_NO=new Set(["XVI Башня","XV Дьявол","XIII Смерть","5 Мечей","10 Мечей"]);const HEAVY_YES=new Set(["XIX Солнце","XXI Мир","XVII Звезда","VI Влюблённые","III Императрица","10 Кубков","9 Кубков"]);
+function yesNoAdvanced(sel){let total=0;const revCount=sel.arr.filter(x=>x.o==="rev").length;const majors=sel.arr.filter(x=>x.card.type==="major").length;sel.arr.forEach(x=>{total+=scoreFor(x.card,x.o);if(HEAVY_NO.has(x.name))total-=3;if(HEAVY_YES.has(x.name))total+=3;});const maxScore=sel.spread*6;const norm=total/Math.max(1,maxScore);let verdict="СМЕШАННО";if(norm>=0.55)verdict="ДА";else if(norm>=0.25)verdict="ДА, НО С УСЛОВИЕМ";else if(norm<=-0.55)verdict="КАТЕГОРИЧЕСКОЕ НЕТ";else if(norm<=-0.25)verdict="НЕТ ПОКА";else if(norm<0)verdict="СКОРЕЕ НЕТ";else if(norm>0)verdict="СКОРЕЕ ДА";let confidence=65+Math.min(25,Math.abs(norm)*60);confidence-=revCount*4;confidence+=majors*2;confidence=Math.max(50,Math.min(95,Math.round(confidence)));return{verdict,confidence,total};}
+function styleWrap(text){const style=document.getElementById("style").value;if(style==="short")return text.split("\n").slice(0,11).join("\n");if(style==="direct")return text;return text.replaceAll("Совет:","Мягкий совет:");}
+function themeLabel(theme){return(theme==="love")?"Любовь":(theme==="money"?"Деньги/работа":"Общее");}
+function generateInterpret(sel){const tLabel=themeLabel(sel.themeAll);const anyRev=sel.arr.some(x=>x.o==="rev");const tone=anyRev?"предупреждающий":"ресурсный";const elCounts=countBy(sel.arr,x=>elementOf(x.card));const elTop=Object.entries(elCounts).sort((a,b)=>b[1]-a[1])[0];const elLine=elTop?`Доминирует элемент: ${elTop[0]} (×${elTop[1]})`:"";const title=document.getElementById("title").value.trim();const client=document.getElementById("client").value.trim();const question=document.getElementById("question").value.trim();const meta=[title&&`Метка: ${title}`,client&&`Имя: ${client}`,question&&`Вопрос: ${question}`].filter(Boolean).join("\n");const lines=sel.arr.map(x=>`${x.i}) ${x.label} (${x.name}${x.o==="rev"?" ⟲":""}): ${x.keys.join(", ")}.`);const link=topPairMessage(sel);const advice=(tone==="предупреждающий")?"Совет: перепроверяйте факты/договорённости и действуйте по шагам.":"Совет: выберите один конкретный шаг на ближайшие 7 дней и закрепите результат.";const header=`Расклад: ${sel.spread} карт\nТема: ${tLabel}\nТон: ${tone}\n${elLine}\nДата: ${new Date().toLocaleString()}\n`;return`${header}${meta?("\n"+meta+"\n"):"\n"}${lines.join("\n")}\n\n${link}\n\n${advice}`;}
+function generateYesNo(sel){const q=document.getElementById("question").value.trim();const r=yesNoAdvanced(sel);const cardsLine=sel.arr.map(x=>`${x.name}${x.o==="rev"?"⟲":""}`).join(" + ");return`Вопрос: ${q||"(не указан)"}\n\nОтвет: ${r.verdict}\nУверенность: ~${r.confidence}%\nБаланс: ${r.total}\n\nКарты: ${cardsLine}`;}
+function generateClient(sel){const title=document.getElementById("title").value.trim();const client=document.getElementById("client").value.trim();const q=document.getElementById("question").value.trim();const yn=yesNoAdvanced(sel);const ynLine=q?`Да/Нет (по балансу): ${yn.verdict} (~${yn.confidence}%)`:"";const base=generateInterpret(sel);return`КЛИЕНТСКИЙ ОТЧЁТ\nДата: ${new Date().toLocaleString()}\n${client?("Клиент: "+client+"\n"):""}${title?("Метка: "+title+"\n"):""}${q?("Вопрос: "+q+"\n"):""}${ynLine?("\n"+ynLine+"\n"):""}\n------------------------------\n${base}\n\nКраткое резюме:\n- Главная тема: ____________________________\n- Следующий шаг: __________________________\n`;}
+function generate(){const mode=document.getElementById("mode").value;const sel=getSelection();const txt=(mode==="yesno")?generateYesNo(sel):(mode==="client")?generateClient(sel):generateInterpret(sel);return styleWrap(txt);}
+function showResult(text){document.getElementById("txt").textContent=text;document.getElementById("out").style.display="block";}
+document.getElementById("btnDark").addEventListener("click",()=>document.body.classList.toggle("dark"));
+document.getElementById("btnReset").addEventListener("click",()=>{document.getElementById("title").value="";document.getElementById("client").value="";document.getElementById("question").value="";renderCards();alert("Сброшено.");});
+document.getElementById("btnGo").addEventListener("click",()=>showResult(generate()));
+document.getElementById("btnCopy").addEventListener("click",async()=>{const text=generate();try{await navigator.clipboard.writeText(text);alert("Скопировано!");}catch(e){alert("Не удалось скопировать.");}});
+document.getElementById("btnPrint").addEventListener("click",()=>{showResult(generate());window.print();});
+document.getElementById("btnCacheAll").addEventListener("click",async()=>{if(!navigator.onLine){alert("Нужен интернет для первичного кеширования.");return;}const urls=Object.values(IMG);let ok=0,fail=0;for(const u of urls){try{const r=await fetch(u,{mode:"cors"});if(!r.ok)throw new Error("http "+r.status);ok++;}catch(e){fail++;}}alert(`Готово: закешировано ~${ok} / ${urls.length}. Ошибок: ${fail}.`);});
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js").then(()=>{const el=document.getElementById("net");el.style.display="block";if(!navigator.onLine)el.textContent="✓ Приложение в офлайне";}).catch(()=>{const el=document.getElementById("net");el.style.display="block";el.textContent="⚠️ Service Worker не активирован";});}
+renderCards();
+</script></div></div></body></html>
