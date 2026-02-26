@@ -1,11 +1,11 @@
 {
-  "name": "Таро — расклады 2/3/5 карт (RU)",
-  "short_name": "Таро 2/3/5",
+  "name": "Таро — расклады 2/3/5 (магическая версия)",
+  "short_name": "Таро",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0b1020",
-  "theme_color": "#0b1020",
+  "background_color": "#060814",
+  "theme_color": "#060814",
   "icons": [
     {
       "src": "./icons/icon-192.png",

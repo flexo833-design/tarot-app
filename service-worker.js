@@ -1,5 +1,5 @@
 // Cache-first PWA service worker
-const CACHE_NAME = "tarot-pwa-v2";
+const CACHE_NAME = "tarot-pwa-v3";
 const ASSETS = [
   "./",
   "./index.html",
