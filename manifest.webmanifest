@@ -1,11 +1,11 @@
 {
-  "name": "Таро — расклады 2/3/5 (магическая версия)",
-  "short_name": "Таро",
+  "name": "Таро — трактовка расклада (2/3/5) v5",
+  "short_name": "Таро v5",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#060814",
-  "theme_color": "#060814",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
   "icons": [
     {
       "src": "./icons/icon-192.png",
